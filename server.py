@@ -94,8 +94,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         else:
             self.request.sendall(bytearray(STATUS_404, CODING))
             return
-        
-        
             
 
 if __name__ == "__main__":
