@@ -35,7 +35,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         # status codes and messages
         STATUS_200 = "HTTP/1.1 200 OK\r\n"
-        STATUS_301 = "HTTP/1.1 301 Moved\r\n"
+        STATUS_301 = "HTTP/1.1 301 Moved Permanently\r\n"
         STATUS_404 = "HTTP/1.1 404 Not Found\r\n"
         STATUS_405 = "HTTP/1.1 405 Method Not Allowed\r\n"
         
@@ -44,34 +44,41 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
         
         self.data = self.request.recv(1024).strip()
-        # print("Got a request of: %s\n" % self.data)
+        print("Got a request of: %s\n" % self.data)
         
         method, req_path = self.data.decode().split()[0:2]
-        # print(req_path)
         
         # only GET is supported, all other methods return 405 error
         if method != "GET":
             self.request.sendall(bytearray(STATUS_405, CODING))
-            return
-
-        # attach base path
+            return      
+                    
+        # attach base path (temp)
         if req_path[0] == "/":
-            req_path = BASE_PATH + req_path
+            temp_path = BASE_PATH + req_path
         else:
-            req_path = BASE_PATH + "/" + req_path      
+            temp_path = BASE_PATH + "/" + req_path
         
         # if directory (end with "/" or add it -> 301), default to index.html
-        if os.path.isdir(req_path):
+        if os.path.isdir(temp_path):
             if not req_path.endswith("/"):
-                os.path.join(req_path, "/")
-                self.request.sendall(bytearray(STATUS_301, CODING))
+                req_path += "/"
+                headers = STATUS_301 + f"Location: {req_path}\r\n"
+                self.request.sendall(bytearray(headers, CODING))
                 return
             else:
                 req_path += "index.html"
+
+        # reattach base path
+        if req_path[0] == "/":
+            req_path = BASE_PATH + req_path
+        else:
+            req_path = BASE_PATH + "/" + req_path
         
         # check if it is in the right directory
-        if not os.path.abspath(req_path).startswith(os.getcwd() + req_path[1:]):
-            self.request.sendall(bytearray(STATUS_404, CODING))
+        if not os.path.abspath(req_path).startswith(os.getcwd() + BASE_PATH[1:]):
+            headers = STATUS_404 + "\r\n404 Not Found"
+            self.request.sendall(bytearray(headers, CODING))
             return
         
         # check and read contents if it exists and return 200, else 404 error    
@@ -92,8 +99,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
             self.request.sendall(bytearray(headers + content, CODING))
         
         else:
-            self.request.sendall(bytearray(STATUS_404, CODING))
-            return
+            headers = STATUS_404 + "\r\n404 Not Found"
+            self.request.sendall(bytearray(headers, CODING))
             
 
 if __name__ == "__main__":
