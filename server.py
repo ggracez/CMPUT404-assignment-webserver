@@ -43,7 +43,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
         
         self.data = self.request.recv(1024).strip()
-        print("Got a request of: %s\n" % self.data)
+        # print("Got a request of: %s\n" % self.data)
         
         method, req_path = self.data.decode().split()[0:2]
         
