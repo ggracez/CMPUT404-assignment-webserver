@@ -1,7 +1,6 @@
 #  coding: utf-8 
 import socketserver
 import os
-from pathlib import Path
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
